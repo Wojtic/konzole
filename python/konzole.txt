@@ -1,0 +1,35 @@
+from PIL import Image
+im = Image.open(r"C:\Users\vojta\OneDrive\Plocha\pacman_bloky.png")
+pic = im.load()
+
+pixels = []
+for i in range(32):
+	row = []
+	for j in range(32):
+		if pic[j, i][0] > 0:
+			row.append(1)
+		else:
+			row.append(0)
+	pixels.append(row)
+
+blocks = []
+for i in range(16):
+	block = []
+	x = i % 4
+	y = (i - (i % 4)) / 4
+	for j in range(8):
+		block.append(pixels[x*8+j][y*8:y*8+8])
+	blocks.append(block)
+
+#tady je radek navic na zacatku, ktery nedava smysl
+
+tiles = []
+for i in blocks:
+	tile = []
+	
+	for j in i:
+		st = "0b"
+		for k in j:
+			st += str(k)
+		tile.append(st)
+	tiles.append(tile)
