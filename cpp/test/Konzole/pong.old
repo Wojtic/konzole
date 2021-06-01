@@ -1,0 +1,142 @@
+#include "define.h"
+
+namespace pong {
+  #define lever_height 80
+  #define lever_width 20
+  #define lever1_x 20
+  #define lever2_x 280
+  #define max_position screen_height-lever_heigth
+  
+  #define ball_size 10
+  
+  int lever1_position = 80;
+  int lever2_position = 60;
+  int velocity = 5;
+  int enemy_velocity = 1;
+  
+  int ball_x_position = 120;
+  int ball_x_speed = 2;
+  int ball_y_position = 120;
+  int ball_y_speed = 2;
+  float ball_y_velocity = 1.0;
+  long ball_frames_moved = 0;
+  long ball_frames = 0;
+  
+  int score1 = 0;
+  int score2 = 0;
+  bool score_changed = false;
+  
+  template <typename type>
+  type sign(type value) {
+   return type((value>0)-(value<0));
+  }
+
+  void move_player(int speed) {
+    if (0 > lever1_position+speed || lever1_position+speed > screen_height-lever_height) {
+      speed = 0;
+    }
+    if (speed > 0) {
+      tft.fillRect(lever1_x, lever1_position, lever_width, speed, color_white);
+      tft.fillRect(lever1_x, lever1_position+lever_height,lever_width, speed, color_green);
+    } else if (speed < 0 ) {
+      tft.fillRect(lever1_x, lever1_position+speed, lever_width, -speed, color_green);
+      tft.fillRect(lever1_x, lever1_position+lever_height+speed, lever_width, -speed, color_white);
+    }
+    lever1_position += speed;
+  }
+  
+  void move_enemy(int speed) {
+    if (0 > lever2_position+speed || lever2_position+speed > screen_height-lever_height) {
+      speed = 0;
+    }
+    if (speed > 0) {
+      tft.fillRect(lever2_x, lever2_position, lever_width, speed, color_white);
+      tft.fillRect(lever2_x, lever2_position+lever_height, lever_width, speed, color_green);
+    } else if (speed < 0 ) {
+      tft.fillRect(lever2_x, lever2_position+speed, lever_width, -speed, color_green);
+      tft.fillRect(lever2_x, lever2_position+lever_height+speed, lever_width, -speed, color_white);
+    }
+    lever2_position += speed;
+  }
+  
+  void move_ball() {
+    if (0 > ball_x_position+ball_x_speed) {
+      score2 += 1;
+      score_changed = true;
+      ball_x_speed *= -1;
+    }
+    if( ball_x_position+ball_x_speed > screen_width-ball_size){
+      score1 += 1;
+      score_changed = true;
+      ball_x_speed *= -1;
+    }
+    if (0 > ball_y_position+ball_y_speed*int(sign(ball_y_velocity)) || ball_y_position+ball_y_speed*int(sign(ball_y_velocity)) > screen_height-ball_size) {
+      ball_y_velocity *= -1;  
+    }
+    if (lever1_x+lever_width > ball_x_position+ball_x_speed && ball_y_position+ball_y_speed*int(sign(ball_y_velocity)) > lever1_position && ball_y_position+ball_y_speed*int(sign(ball_y_velocity)) < lever1_position + lever_height){
+      ball_x_speed *= -1;
+      ball_y_velocity = ((ball_y_position + ball_size/2.0) - (lever1_position + lever_height/2.0)) / (lever_height/2.0);
+    }
+    if (lever2_x < ball_x_position+ball_size+ball_x_speed && ball_y_position+ball_y_speed*int(sign(ball_y_velocity)) > lever2_position && ball_y_position+ball_y_speed*int(sign(ball_y_velocity)) < lever2_position + lever_height){
+      ball_x_speed *= -1;
+      ball_y_velocity = ((ball_y_position + ball_size/2.0) - (lever2_position + lever_height/2.0)) / (lever_height/2.0);
+    }
+    if (ball_frames_moved/float(ball_frames) <= abs(ball_y_velocity)) {
+      ball_frames_moved += 1;
+      if (ball_y_velocity > 0) {
+        tft.fillRect(ball_x_position, ball_y_position, ball_size, ball_y_speed, color_white);
+        tft.fillRect(ball_x_position, ball_y_position+ball_size, ball_size, ball_y_speed, color_blue);
+      } else if (ball_y_velocity < 0 ) {
+        tft.fillRect(ball_x_position, ball_y_position-ball_y_speed, ball_size, ball_y_speed, color_blue);
+        tft.fillRect(ball_x_position, ball_y_position+ball_size-ball_y_speed, ball_size, ball_y_speed, color_white);
+      }
+      ball_y_position += ball_y_speed*int(sign(ball_y_velocity));
+    }
+    if (ball_x_speed > 0) {
+      tft.fillRect(ball_x_position, ball_y_position, ball_x_speed, ball_size,  color_white);
+      tft.fillRect(ball_x_position, ball_y_position, ball_x_speed, ball_size, color_blue);
+    } else if (ball_x_speed < 0) {
+      tft.fillRect(ball_x_position+ball_size+ball_x_speed, ball_y_position, -ball_x_speed, ball_size, color_white);
+      tft.fillRect(ball_x_position+ball_x_speed, ball_y_position, -ball_x_speed, ball_size, color_blue);
+    }
+    ball_frames += 1;
+    ball_x_position += ball_x_speed;
+    
+  }
+  
+  void setup() {
+    tft.fillScreen(color_white);
+  
+    tft.fillRect(lever1_x, lever1_position, lever_width, lever_height, color_green);
+    tft.fillRect(lever2_x, lever2_position, lever_width, lever_height, color_green);
+    tft.fillRect(ball_y_position, ball_x_position, ball_size, ball_size, color_blue);
+    tft.setTextColor(color_black);
+    tft.setTextSize(5);
+    
+  }
+  
+  void loop() {
+    if(Input::is_down(dpad_up)) {
+      move_player(-velocity);
+    } else if(Input::is_down(dpad_down)) {
+      move_player(velocity); 
+    }
+    int ball_direction = sign((ball_y_position + ball_size/2.0) - (lever2_position + lever_height/2.0));
+    move_enemy(ball_direction*enemy_velocity);
+    move_ball();
+    if (score_changed) {
+      tft.setTextColor(color_white);
+      tft.setCursor(0, 60);
+      tft.print(score1-1);
+      tft.setCursor(0, 160);
+      tft.print(score2-1);
+      tft.setTextColor(color_black);
+      score_changed = false;
+    }
+    tft.setCursor(0, 60);
+    tft.print(score1);
+    tft.setCursor(0, 160);
+    tft.print(score2);
+    delay(15);
+  }
+}
