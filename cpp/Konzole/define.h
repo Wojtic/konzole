@@ -207,6 +207,11 @@ namespace tetris {
   void loop();
 };
 
+namespace snake {
+  void setup();
+  void loop();
+};
+
 namespace Input {
   void setup();
   void loop();

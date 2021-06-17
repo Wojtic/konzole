@@ -3,8 +3,8 @@
 enum games:uint8_t {
   Menu, Pacman, Pong, Settings, Snake, Breakout, Mario, Tetris
 };
-void (*game_setups[])() = {menu::setup, pacman::setup, pong::setup, test::setup};
-void (*game_loops[])() = {menu::loop, pacman::loop, pong::loop, test::loop};
+void (*game_setups[])() = {menu::setup, test::setup, pong::setup, pacman::setup, snake::setup};
+void (*game_loops[])() = {menu::loop, test::loop, pong::loop, pacman::loop, snake::loop};
 
 
 games current_game = Menu;
