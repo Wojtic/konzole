@@ -1,9 +1,9 @@
 #include "define.h"
 
 namespace snake {
-const int grid = 20;
+const uint8_t grid = 20;
 const int maxLen = screen_width / grid * (screen_height / grid);
-int snake[maxLen][2];
+uint8_t snake[maxLen][2];
 int snakeLen = 1;
 bool eaten = false;
 
