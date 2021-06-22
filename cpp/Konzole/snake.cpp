@@ -1,7 +1,7 @@
 #include "define.h"
 
 namespace snake {
-const uint8_t grid = 20;
+const uint8_t grid = 20; // Velikost mřížky - musí být násobek 4 a musí být minimálně 16, jinak se pole nevejde do ramky
 const int maxLen = screen_width / grid * (screen_height / grid);
 uint8_t snake[maxLen][2];
 int snakeLen = 1;
@@ -26,16 +26,15 @@ void death() {
 }
 
 void checkDeath() {
+  if (snake[snakeLen - 1][0] < 0 || snake[snakeLen - 1][1] < 0 || snake[snakeLen - 1][0] >= screen_width / grid || snake[snakeLen - 1][1] >= screen_height / grid) {
+    death();
+  }
   for (int i = 0; i < snakeLen - 1; i++) {
     for (int j = i + 1; j < snakeLen; j++) {
       if (snake[i][0] == snake[j][0] && snake[i][1] == snake[j][1]) {
         death();
       }
     }
-  }
-
-  if (snake[snakeLen - 1][0] < 0 || snake[snakeLen - 1][1] < 0 || snake[snakeLen - 1][0] >= screen_width / grid || snake[snakeLen - 1][1] >= screen_height / grid) {
-    death();
   }
 }
 
@@ -46,6 +45,7 @@ void updateSnake() {
     snake[snakeLen][1] = snake[snakeLen - 1][1];
     snakeLen++;
   } else {
+
     tft.fillRect(snake[0][0] * grid, snake[0][1] * grid, grid, grid, background);
     for (int i = 0; i < snakeLen - 1; i++) {
       snake[i][0] = snake[i + 1][0];
@@ -54,8 +54,17 @@ void updateSnake() {
   }
   snake[snakeLen - 1][0] += dx;
   snake[snakeLen - 1][1] += dy;
-
-  tft.fillRect(snake[snakeLen - 1][0] * grid, snake[snakeLen - 1][1] * grid, grid, grid, col_snake);
+  if (snakeLen == 1) {
+    tft.fillRect(snake[snakeLen - 1][0] * grid + grid / 4, snake[snakeLen - 1][1] * grid + grid / 4, grid / 2, grid / 2, col_snake);
+  } else if (snake[snakeLen - 2][1] > snake[snakeLen - 1][1]) {
+    tft.fillRect(snake[snakeLen - 1][0] * grid + grid / 4, snake[snakeLen - 1][1] * grid + grid / 4, grid / 2, grid, col_snake);
+  } else if (snake[snakeLen - 2][1] < snake[snakeLen - 1][1]) {
+    tft.fillRect(snake[snakeLen - 1][0] * grid + grid / 4, snake[snakeLen - 1][1] * grid - grid / 4, grid / 2, grid, col_snake);
+  } else if (snake[snakeLen - 2][0] < snake[snakeLen - 1][0]) {
+    tft.fillRect(snake[snakeLen - 1][0] * grid - grid / 4, snake[snakeLen - 1][1] * grid + grid / 4, grid, grid / 2, col_snake);
+  } else if (snake[snakeLen - 2][0] > snake[snakeLen - 1][0]) {
+    tft.fillRect(snake[snakeLen - 1][0] * grid + grid / 4, snake[snakeLen - 1][1] * grid + grid / 4, grid, grid / 2, col_snake);
+  }
 
   checkDeath();
 }
@@ -74,12 +83,12 @@ void updateApple() {
     }
     apple[0] = appleNewX;
     apple[1] = appleNewY;
-    tft.fillRect(apple[0] * grid, apple[1] * grid, grid, grid, col_apple);
+    tft.fillRect(apple[0] * grid + grid/4, apple[1] * grid + grid / 4, grid / 2, grid / 2, col_apple);
   }
 }
 
 void setup() {
-  snake[0][0] = 5;
+  snake[0][0] = 5; // Nesnáším c++ :)
   snake[0][1] = 5;
   tft.fillScreen(background);
   tft.fillRect(apple[0] * grid, apple[1] * grid, grid, grid, col_apple);
