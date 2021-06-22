@@ -91,7 +91,7 @@ void setup() {
   snake[0][0] = 5; // Nesnáším c++ :)
   snake[0][1] = 5;
   tft.fillScreen(background);
-  tft.fillRect(apple[0] * grid, apple[1] * grid, grid, grid, col_apple);
+  tft.fillRect(apple[0] * grid + grid/4, apple[1] * grid + grid / 4, grid / 2, grid / 2, col_apple);
 }
 
 unsigned long prevTime = 0;
