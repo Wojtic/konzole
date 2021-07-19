@@ -1,9 +1,9 @@
 #include "define.h"
 
 namespace snake {
-const uint8_t grid = 12; // Velikost mřížky - musí být násobek 4
-const int maxLen = screen_width / grid * (screen_height / grid);
-uint8_t snake[maxLen];
+const uint8_t grid = 8; // Velikost mřížky - musí být násobek 4
+const int maxLen = screen_width / grid * (screen_height / grid) / 4;
+byte snake[maxLen];
 int snakeLen = 2;
 bool eaten = false;
 uint8_t head [2] = {7, 5};
@@ -25,34 +25,35 @@ const color_t col_apple = color_red;
 
 void writeSnake(int index, int dx = dx, int dy = dy) {
   if (dx == 1) {
-    snake[index] = 0;
+    bitWrite(snake[index % 4], 7 - (index % 4) * 2, 0);
+    bitWrite(snake[index % 4], 6 - (index % 4) * 2, 0);
   } else if (dx == -1) {
-    snake[index] = 1;
+    bitWrite(snake[index % 4], 7 - (index % 4) * 2, 0);
+    bitWrite(snake[index % 4], 6 - (index % 4) * 2, 1);
   } else if (dy == 1) {
-    snake[index] = 2;
+    bitWrite(snake[index % 4], 7 - (index % 4) * 2, 1);
+    bitWrite(snake[index % 4], 6 - (index % 4) * 2, 0);
   } else if (dy == -1) {
-    snake[index] = 3;
+    bitWrite(snake[index % 4], 7 - (index % 4) * 2, 1);
+    bitWrite(snake[index % 4], 6 - (index % 4) * 2, 1);
   }
 }
 
 void readSnake(int index, int res[]) {
-  switch (snake[index]) {
-    case 0:
-      res[0] = 1;
-      res[1] = 0;
-      break;
-    case 1:
-      res[0] = -1;
-      res[1] = 0;
-      break;
-    case 2:
-      res[0] = 0;
-      res[1] = 1;
-      break;
-    case 3:
-      res[0] = 0;
-      res[1] = -1;
-      break;
+  uint8_t bit1 = bitRead(snake[index % 4], 7 - (index % 4) * 2);
+  uint8_t bit2 = bitRead(snake[index % 4], 6 - (index % 4) * 2);
+  if (bit1 == 0 && bit2 == 0) {
+    res[0] = 1;
+    res[1] = 0;
+  } else if (bit1 == 0 && bit2 == 1) {
+    res[0] = -1;
+    res[1] = 0;
+  } else if (bit1 == 1 && bit2 == 0) {
+    res[0] = 0;
+    res[1] = 1;
+  } else if (bit1 == 1 && bit2 == 1) {
+    res[0] = 0;
+    res[1] = -1;
   }
 }
 
@@ -82,7 +83,8 @@ void checkDeath() {
 void updateSnake() {
   if (eaten) {
     eaten = false;
-    snake[snakeLen] = snake[snakeLen - 1];
+    bitWrite(snake[snakeLen % 4], 7 - (snakeLen % 4) * 2, bitRead(snake[(snakeLen - 1) % 4], 7 - ((snakeLen - 1) % 4) * 2));
+    bitWrite(snake[snakeLen % 4], 6 - (snakeLen % 4) * 2, bitRead(snake[(snakeLen - 1) % 4], 6 - ((snakeLen - 1) % 4) * 2));
     snakeLen++;
   } else {
     int tailReadout[2];
@@ -93,8 +95,8 @@ void updateSnake() {
     tft.fillRect(prevTail[0] * grid, prevTail[1] * grid, grid, grid, background);
 
     for (int i = 0; i < snakeLen - 1; i++) {
-      snake[i] = snake[i + 1];
-      snake[i] = snake[i + 1];
+      bitWrite(snake[i % 4], 7 - (i % 4) * 2, bitRead(snake[(i + 1) % 4], 7 - ((i + 1) % 4) * 2));
+      bitWrite(snake[i % 4], 6 - (i % 4) * 2, bitRead(snake[(i + 1) % 4], 6 - ((i + 1) % 4) * 2));
     }
   }
   // ------------------------------- update head
@@ -149,7 +151,6 @@ void updateApple() {
 
 void setup() {
   snake[0] = 0;
-  snake[1] = 0;
   tft.fillScreen(background);
   tft.fillRect(apple[0] * grid + grid / 4, apple[1] * grid + grid / 4, grid / 2, grid / 2, col_apple);
 }
